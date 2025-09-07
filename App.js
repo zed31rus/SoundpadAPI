@@ -119,9 +119,9 @@ app.post('/soundpad/jump', async (req, res) => {
     const percentage = req.body.percentage;
     try {
         await plHStore.jump(percentage);
-        res.status(200).json({status: true, message: "Jumped to position successfully"});
+        res.status(200).json({status: true, message: "Jumped to truck position successfully"});
     } catch (error) {
-        console.error('Error jumping to position:', error);
+        console.error('Error jumping to track position:', error);
         res.status(500).json({status: false, message: "Failed to jump to position"});
     }
 });
