@@ -1,5 +1,6 @@
 {
   "type": "module",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "dev": "nodemon App.js",
     "test": "node test.js",
