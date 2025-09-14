@@ -13,14 +13,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 const server = http.createServer(app);
-const PORT = 3512
+const PORT = 3002
 const plHStore = new PlaybackHistoryStore(true, true, 100);
 await plHStore.init();
 
-const corsOptions =  {origin:[
-    "https://zed31rus.ru",
-    "https://beta.zed31rus.ru",
-    ], credentials: true};
+const corsOptions =  {origin:
+    "https://zed31rus.ru", credentials: true};
 
 app.use(express.json());
 app.use(cors(corsOptions));
