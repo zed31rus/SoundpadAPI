@@ -6,6 +6,7 @@ import { Server } from 'socket.io'
 import PlaybackHistoryStore from './playbackHistoryStore.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import multer from 'multer';
 
 dotenv.config();
 
@@ -16,6 +17,17 @@ const server = http.createServer(app);
 const PORT = 3002
 const plHStore = new PlaybackHistoryStore(true, true, 100);
 await plHStore.init();
+
+const soundStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'sounds/')
+    },
+    filename: (req, file, cb) => {
+        const uniqueName = file.originalname;
+        cb(null, uniqueName)
+    }
+})
+const uploadSound = multer({ soundStorage });
 
 const corsOptions =  {origin:
     ["https://zed31rus.ru", "http://127.0.0.1:3000"], credentials: true};
