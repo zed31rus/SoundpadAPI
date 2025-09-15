@@ -18,7 +18,7 @@ const plHStore = new PlaybackHistoryStore(true, true, 100);
 await plHStore.init();
 
 const corsOptions =  {origin:
-    "https://zed31rus.ru", credentials: true};
+    ["https://zed31rus.ru", "http://127.0.0.1:3000"], credentials: true};
 
 app.use(express.json());
 app.use(cors(corsOptions));
@@ -144,3 +144,29 @@ app.post('/soundpad/getVolume', async (req, res) => {
         res.status(500).json({status: false, message: "Failed to fetch volume"});
     }
 });
+
+app,post("/soundpad/addSound", authMiddleware, async (req, res) => {
+    
+})
+
+async function authMiddleware(req, res, next) {
+    const cookies  = req.headers.cookies;
+    if (!cookies) return res.status(401).json({ status: false, message: "No cookies" });
+
+    try {
+        const authRes = await fetch("https://auth.zed31rus.ru/me", {
+            headers: { "Cookie": cookies }
+        });
+
+        const data = await authRes.json();
+
+        if (!data.status) return res.status(401).json({"status": false, message: "Unautorized"})
+
+        req.user = data.user
+        next();
+    }
+    catch (err) {
+        console.error(err)
+        return res.status(500).json({"status" : false, "message": "Auth check failed" })
+    }
+}
