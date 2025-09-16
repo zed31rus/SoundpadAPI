@@ -157,7 +157,7 @@ app.post('/soundpad/getVolume', async (req, res) => {
     }
 });
 
-app.post("/soundpad/addSound", authMiddleware(options = {isCheckedByAdmin: true}), uploadSound.array('files'), async (req, res) => {
+app.post("/soundpad/addSound", authMiddleware({isCheckedByAdmin: true}), uploadSound.array('files'), async (req, res) => {
     if (!req.files || req.files.length === 0) {
         return res.status(400).json({
             status: false,
