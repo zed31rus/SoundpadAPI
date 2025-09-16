@@ -27,7 +27,7 @@ const soundStorage = multer.diskStorage({
         cb(null, uniqueName)
     }
 })
-const uploadSound = multer({ soundStorage });
+const uploadSound = multer({ storage: soundStorage });
 
 const corsOptions =  {origin:
     ["https://zed31rus.ru", "http://127.0.0.1:3000"], credentials: true};
@@ -157,9 +157,39 @@ app.post('/soundpad/getVolume', async (req, res) => {
     }
 });
 
-app,post("/soundpad/addSound", authMiddleware, async (req, res) => {
-    
-})
+app.post("/soundpad/addSound", authMiddleware, uploadSound.array('files'), async (req, res) => {
+    if (!req.files || req.files.length === 0) {
+        return res.status(400).json({
+            status: false,
+            message: "Error uploading files"
+        });
+    }
+
+    try {
+        const addedSounds = [];
+        
+        for (const file of req.files) {
+            const fullPath = path.join(__dirname, 'sounds', file.filename);
+            await plHStore.addSound(fullPath);
+            addedSounds.push({
+                name: file.originalname
+            });
+        }
+
+        res.status(200).json({
+            status: true,
+            message: "Files uploaded and added to Soundpad successfully",
+            data: addedSounds
+        });
+
+    } catch (err) {
+        console.error("Error adding sounds:", err);
+        res.status(500).json({
+            status: false,
+            message: "Failed to add sounds"
+        });
+    }
+});
 
 async function authMiddleware(req, res, next) {
     const cookies  = req.headers.cookies;
