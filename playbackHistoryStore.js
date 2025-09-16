@@ -132,9 +132,9 @@ class PlaybackHistoryStore extends EventEmitter {
 
     async addSound(url) {
         const status = await this.soundpad.addSound(url);
-        if (status) {
+        setTimeout(async () => {
             await this.updateSoundList();
-        }
+        }, 500);
     }
 
     async jump(percentage) {

@@ -23,8 +23,10 @@ const soundStorage = multer.diskStorage({
         cb(null, 'sounds/')
     },
     filename: (req, file, cb) => {
-        const uniqueName = file.originalname;
-        cb(null, uniqueName)
+        const name = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        const transliteratedName = transliterate(name)
+        const safeName = transliteratedName.replace(/\s+/g, "_");
+        cb(null, safeName)
     }
 })
 const uploadSound = multer({ storage: soundStorage });
@@ -44,7 +46,6 @@ server.listen(PORT, (error) => {
 });
 
 ios.on('connection', async (socket) => {
-    console.log('New Socket.IO connection established');
 
     const current = await plHStore.getCurrent();
     const history = await plHStore.getHistory();
@@ -193,7 +194,7 @@ app.post("/soundpad/addSound", authMiddleware({isCheckedByAdmin: true}), uploadS
 
 function authMiddleware(options = {}) {
     return async (req, res, next) => {
-        const cookies = req.headers.cookies;
+        const cookies = req.headers.cookie;
         if (!cookies) return res.status(401).json({ status: false, message: "No cookies" });
 
         try {
@@ -217,4 +218,16 @@ function authMiddleware(options = {}) {
             return res.status(500).json({ status: false, message: "Auth check failed" });
         }
     };
+}
+
+function transliterate(str) {
+    const map = {
+        'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'y',
+        'к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f',
+        'х':'h','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya',
+        'А':'A','Б':'B','В':'V','Г':'G','Д':'D','Е':'E','Ё':'Yo','Ж':'Zh','З':'Z','И':'I','Й':'Y',
+        'К':'K','Л':'L','М':'M','Н':'N','О':'O','П':'P','Р':'R','С':'S','Т':'T','У':'U','Ф':'F',
+        'Х':'H','Ц':'Ts','Ч':'Ch','Ш':'Sh','Щ':'Sch','Ъ':'','Ы':'Y','Ь':'','Э':'E','Ю':'Yu','Я':'Ya'
+    };
+    return str.split('').map(c => map[c] || c).join('');
 }
