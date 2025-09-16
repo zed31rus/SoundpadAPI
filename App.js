@@ -157,7 +157,7 @@ app.post('/soundpad/getVolume', async (req, res) => {
     }
 });
 
-app.post("/soundpad/addSound", authMiddleware, uploadSound.array('files'), async (req, res) => {
+app.post("/soundpad/addSound", authMiddleware(options = {isCheckedByAdmin: true}), uploadSound.array('files'), async (req, res) => {
     if (!req.files || req.files.length === 0) {
         return res.status(400).json({
             status: false,
@@ -191,24 +191,30 @@ app.post("/soundpad/addSound", authMiddleware, uploadSound.array('files'), async
     }
 });
 
-async function authMiddleware(req, res, next) {
-    const cookies  = req.headers.cookies;
-    if (!cookies) return res.status(401).json({ status: false, message: "No cookies" });
+function authMiddleware(options = {}) {
+    return async (req, res, next) => {
+        const cookies = req.headers.cookies;
+        if (!cookies) return res.status(401).json({ status: false, message: "No cookies" });
 
-    try {
-        const authRes = await fetch("https://auth.zed31rus.ru/me", {
-            headers: { "Cookie": cookies }
-        });
+        try {
+            const authRes = await fetch("https://auth.zed31rus.ru/me", {
+                headers: { "Cookie": cookies }
+            });
 
-        const data = await authRes.json();
+            const data = await authRes.json();
 
-        if (!data.status) return res.status(401).json({"status": false, message: "Unautorized"})
+            if (!data.status) return res.status(401).json({ status: false, message: "Unauthorized" });
 
-        req.user = data.user
-        next();
-    }
-    catch (err) {
-        console.error(err)
-        return res.status(500).json({"status" : false, "message": "Auth check failed" })
-    }
+            req.user = data.user;
+
+            if (options.isCheckedByAdmin && !req.user.isCheckedByAdmin) {
+                return res.status(403).json({ status: false, message: "User not verified by admin" });
+            }
+
+            next();
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ status: false, message: "Auth check failed" });
+        }
+    };
 }
