@@ -36,6 +36,7 @@ const corsOptions =  {origin:
 
 app.use(express.json());
 app.use(cors(corsOptions));
+app.set('trust proxy', true);
 
 const ios = new Server(server, {
   cors: corsOptions
@@ -166,21 +167,15 @@ app.post("/soundpad/addSound", authMiddleware({isCheckedByAdmin: true}), uploadS
         });
     }
 
-    try {
-        const addedSounds = [];
-        
+    try {     
         for (const file of req.files) {
             const fullPath = path.join(__dirname, 'sounds', file.filename);
             await plHStore.addSound(fullPath);
-            addedSounds.push({
-                name: file.originalname
-            });
         }
 
         res.status(200).json({
             status: true,
-            message: "Files uploaded and added to Soundpad successfully",
-            data: addedSounds
+            message: "Files uploaded and added to Soundpad successfully"
         });
 
     } catch (err) {
